@@ -7,16 +7,13 @@ from pathlib import Path
 from services import get_video_scene_ids, get_scene
 import redis
 from supabase import create_client, Client
-import time
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SERVICE_ROLE")
 SUPABASE_BUCKET = "videos"
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-REDIS_HOST = "localhost"
-REDIS_PORT = 6379
-WORK_DIR = "./renders"  # Make sure this is volume-mounted in Docker
+
 
 r = redis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
 def write_scene_files(video_dir, scenes):
@@ -27,6 +24,9 @@ def write_scene_files(video_dir, scenes):
     return video_dir
 
 def render_scene(video_dir, scene_file):
+    manim_path = shutil.which("manim")
+    if not manim_path:
+        raise Exception("Manim binary not found in PATH")
     cmd = [
         "manim",
         "-qh",  # Just quick quality; no preview
@@ -99,22 +99,16 @@ def merge_videos(video_dir, scene_count, output_name="final_video.mp4"):
 def worker_loop():
     print("Worker started, waiting for jobs...")
     while True:
-        try:
-            # Timeout after 60 seconds instead of blocking forever
-            result = r.blpop("render_queue", timeout=60)
-            
-            if result is None:
-                # No job in the last 60 seconds, loop again (keep connection alive)
-                continue
-                
-            _, job_id = result
-            print(f"Picked job: {job_id}")
-            
-            job_key = f"render_job:{job_id}"
-            job_data = r.hgetall(job_key)
-            video_id = job_data.get("video_id")
+        _, job_id = r.blpop("render_queue")
+        print(f"Picked job: {job_id}")
 
-            with tempfile.TemporaryDirectory() as temp_dir:
+        job_key = f"render_job:{job_id}"
+        job_data = r.hgetall(job_key)
+        video_id = job_data.get("video_id")
+
+        # Create a temporary directory for this job
+        with tempfile.TemporaryDirectory() as temp_dir:
+            try:
                 temp_path = Path(temp_dir)
                 r.hset(job_key, "status", "in_progress")
 
@@ -134,25 +128,28 @@ def worker_loop():
                 successful_scene_indexes = []
                 failed_scene_indexes = []
 
-                for idx, scene in enumerate(scenes):
+                for idx in range(len(scenes)):
                     scene_file = f"scene{idx+1}.py"
                     try:
                         print(f"Rendering {scene_file} ...")
                         render_scene(video_dir, scene_file)
+                        # Verify the video was actually created
                         video_path = find_rendered_video(video_dir, f"scene{idx+1}")
                         if video_path:
                             successful_scene_indexes.append(idx + 1)
                         else:
-                            print(f"Warning: No video file found for {scene_file}")
+                            print(f"Warning: No video file found for {scene_file} after rendering")
                             failed_scene_indexes.append(idx + 1)
                     except Exception as render_error:
                         print(f"Rendering failed for {scene_file}: {render_error}")
                         failed_scene_indexes.append(idx + 1)
+                        # Continue with next scene
 
                 if not successful_scene_indexes:
                     raise Exception("All scene renders failed. No video to merge.")
 
                 print(f"Merging {len(successful_scene_indexes)} successful scenes...")
+                print(f"Failed scenes: {failed_scene_indexes}")
                 final_video = merge_videos(video_dir, len(scenes), output_name="final_video.mp4")
 
                 with open(final_video, "rb") as f:
@@ -178,21 +175,10 @@ def worker_loop():
                 except Exception as upload_error:
                     raise Exception(f"Supabase upload failed: {str(upload_error)}")
 
-        except redis.exceptions.ConnectionError as ce:
-            print(f"[Redis] Connection dropped: {ce}. Reconnecting in 5s...")
-            time.sleep(5)
-            # Re-initialize Redis connection
-            r = redis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
-            continue  # Continue the loop instead of breaking
-            
-        except Exception as e:
-            print(f"Job failed: {e}")
-            if 'job_key' in locals():
-                r.hset(job_key, mapping={
-                    "status": "failed",
-                    "error": str(e)
-                })
-            continue  # Continue the loop for other exceptions too
+            except Exception as e:
+                r.hset(job_key, "status", "failed")
+                r.hset(job_key, "error", str(e))
+                print(f"Job {job_id} failed: {e}")
 
 
 
