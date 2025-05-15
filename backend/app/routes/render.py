@@ -1,9 +1,8 @@
 import uuid
 import redis
+import os
 from fastapi import APIRouter, HTTPException
-from app.services.redis import get_video_scene_ids, get_scene
-
-r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+from app.services.redis import get_video_scene_ids, get_scene, r
 
 router = APIRouter(prefix="/render", tags=["render"])
 

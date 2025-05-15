@@ -1,3 +1,0 @@
-file '/Users/hardy/Developer/projects/2dmation/backend/renders/video_83247553/media/videos/scene1/480p15/GravityScene1.mp4'
-file '/Users/hardy/Developer/projects/2dmation/backend/renders/video_83247553/media/videos/scene2/480p15/GravityScene2.mp4'
-file '/Users/hardy/Developer/projects/2dmation/backend/renders/video_83247553/media/videos/scene3/480p15/GravityScene3.mp4'

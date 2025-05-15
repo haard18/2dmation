@@ -4,15 +4,18 @@ import subprocess
 from pathlib import Path
 from app.services.redis import get_video_scene_ids, get_scene
 import redis
+from supabase import create_client, Client
 
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SERVICE_ROLE")
+SUPABASE_BUCKET = "videos"
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 REDIS_HOST = "localhost"
 REDIS_PORT = 6379
 WORK_DIR = "./renders"  # Make sure this is volume-mounted in Docker
 
-r = redis.Redis(
-    host=os.getenv('REDIS_HOST', 'localhost'), 
-    port=int(os.getenv('REDIS_PORT', 6379))
-)
+r = redis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
 def write_scene_files(video_id, scenes):
     video_dir = Path(WORK_DIR) / video_id
     video_dir.mkdir(parents=True, exist_ok=True)
@@ -85,7 +88,7 @@ def merge_videos(video_dir, scene_count, output_name="final_video.mp4"):
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         raise Exception(f"Failed to merge videos: {result.stderr}")
-
+    
     return output_path
 
 def worker_loop():
@@ -122,11 +125,26 @@ def worker_loop():
             print("Merging videos...")
             final_video = merge_videos(video_dir, len(scenes))
 
-            r.hset(job_key, mapping={
-                "status": "completed",
-                "output_path": str(final_video)
-            })
-            print(f"Job {job_id} completed, video at {final_video}")
+            with open(final_video, "rb") as f:
+                file_data = f.read()
+                
+            file_name = f"{video_id}.mp4"
+
+            try:
+                upload_response = supabase.storage.from_(SUPABASE_BUCKET).upload(file_name, file_data, {
+                    "content-type": "video/mp4",
+                    "cache-control": "3600"
+                })
+                
+                # Get public URL
+                public_url = supabase.storage.from_(SUPABASE_BUCKET).get_public_url(file_name)
+                r.hset(job_key, mapping={
+                    "status": "completed",
+                    "public_url": public_url
+                })
+                print(f"Job {job_id} completed, video URL: {public_url}")
+            except Exception as upload_error:
+                raise Exception(f"Supabase upload failed: {str(upload_error)}")
 
         except Exception as e:
             r.hset(job_key, "status", "failed")

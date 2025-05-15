@@ -4,8 +4,11 @@ import os
 import aiohttp
 import asyncio
 from google import genai
+from dotenv import load_dotenv
 
+load_dotenv()
 
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 def call_gemini_sync(prompt: str) -> str:
     client = genai.Client(api_key=GOOGLE_API_KEY)

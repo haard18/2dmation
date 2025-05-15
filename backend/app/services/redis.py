@@ -1,7 +1,11 @@
 import redis
 import json
+import os
+from dotenv import load_dotenv
 
-r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+load_dotenv()
+
+r = redis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
 
 def save_scene(scene_id, data):
     r.set(f"scene:{scene_id}", json.dumps(data))

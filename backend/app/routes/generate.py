@@ -40,33 +40,52 @@ def parse_scenes_from_llm(text: str):
 
 @router.post("/")
 async def generate_scenes(request: GenerateRequest):
+
     prompt = f"""
-You are an expert Manim animator.
-Break the following text into 3 scenes.
-For each scene provide:
-Scene N Title: <title>
-Narration: <text narration>
-Manim Code:
-<class definition of Manim Scene, Python code>
-Text to explain: {request.prompt}
+        You are a professional Manim animation expert and Python code generator.
 
-Output format:
+        Your task is to break down the following topic into **3 short, educational animated scenes** using **valid ManimCE code**.
 
-Scene 1 Title: ...
-Narration: ...
-Manim Code:
-<class ...>
+        ## Topic:
+        {request.prompt}
 
-Scene 2 Title: ...
-Narration: ...
-Manim Code:
-<class ...>
+        ## Rules:
+        1. Each scene must have:
+            - A short and clear title
+            - A concise narration (for voiceover)
+            - Valid Python ManimCE code in a single class (subclass of `Scene`)
+        2. Only use the following Manim elements:
+            - `Text`, `Circle`, `Dot`, `Arrow`
+            - Colors: `RED`, `GREEN`, `BLUE`, `YELLOW`, `WHITE`, `BLACK`, `GRAY`, `LIGHT_BLUE`, `LIGHT_GREEN`, `LIGHT_RED`, `LIGHT_YELLOW`
+            - Transformations and animations like `.shift()`, `.scale()`, `.rotate()`, `.fade_out()`, `.fade_in()`, `Create()`, `Write()`, `MoveToTarget()`, `Transform()`, `Rotate()`, `FadeIn()`, `FadeOut()`
+        3. Use only **positional arguments** unless you're absolutely certain the keyword is valid in Manim.
+            - Example: ❌ `rotate_about_origin(about_point=...)` ← Invalid
+            - ✅ `rotate(angle)` ← Valid
+        4. Do **NOT**:
+            - Use LaTeX or `Tex`
+            - Import or use external assets
+            - Use any unsupported or experimental APIs
+            - Use any unverified keyword arguments
+        5. Each scene class should be named `Scene1`, `Scene2`, `Scene3` respectively.
 
-Scene 3 Title: ...
-Narration: ...
-Manim Code:
-<class ...>
-"""
+        ## Output Format:
+        Scene 1 Title: <title>
+        Narration: <narration>
+        Manim Code:
+        <class Scene1(Scene): ...>
+
+        Scene 2 Title: <title>
+        Narration: <narration>
+        Manim Code:
+        <class Scene2(Scene): ...>
+
+        Scene 3 Title: <title>
+        Narration: <narration>
+        Manim Code:
+        <class Scene3(Scene): ...>
+        """
+
+      
     try:
         llm_response = await call_llm(prompt, model=request.model)
         scenes = parse_scenes_from_llm(llm_response)
