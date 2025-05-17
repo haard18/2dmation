@@ -2,4 +2,4 @@ venv
 docker-compose.yaml
 .env
 renders/
-env/
+env
