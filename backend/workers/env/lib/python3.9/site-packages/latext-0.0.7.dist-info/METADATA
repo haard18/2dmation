@@ -1,0 +1,17 @@
+Metadata-Version: 2.0
+Name: latext
+Version: 0.0.7
+Summary: For converting LaTeX to spoken text.
+Home-page: https://github.com/Alex-Tremayne/LaTeXt
+Author: Alex Tremayne
+Author-email: alexjtremayne@gmail.com
+License: MIT
+Description-Content-Type: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.6
+
+UNKNOWN
+
+
