@@ -44,7 +44,7 @@ const PromptInput = ({
           className="w-full p-4 pl-12 bg-black/40 backdrop-blur-sm border border-white/10 text-white placeholder-gray-500 font-mono rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400/50 transition-all"
           whileFocus={{ scale: 1.01 }}
         />
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+        {/* <div className="absolute left-4 top-[10px] -translate-y-1/2 text-gray-400">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5"
@@ -57,7 +57,7 @@ const PromptInput = ({
               clipRule="evenodd"
             />
           </svg>
-        </div>
+        </div> */}
       </motion.div>
 
       <motion.button
