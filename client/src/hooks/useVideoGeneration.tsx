@@ -11,7 +11,7 @@ const useVideoGeneration = () => {
   const [videoId, setVideoId] = useState(null);
   const [, setJobId] = useState(null);
   const [polling, setPolling] = useState(false);
-
+  const [model, setModel] = useState("gemini");
   const generateScenes = async () => {
     setLoading(true);
     setVideoUrl("");
@@ -22,7 +22,7 @@ const useVideoGeneration = () => {
     try {
       const genRes = await axios.post(`${API_BASE}/generate`, {
         prompt: input,
-        model: "gemini",
+        model: model,
       });
 
       setScenes(genRes.data.scenes);
@@ -83,7 +83,9 @@ const useVideoGeneration = () => {
     scenes,
     polling,
     generateScenes,
-    renderVideo
+    renderVideo,
+    model,
+    setModel,
   };
 };
 

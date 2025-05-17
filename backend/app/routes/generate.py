@@ -10,32 +10,60 @@ router = APIRouter(prefix="/generate", tags=["generate"])
 
 class GenerateRequest(BaseModel):
     prompt: str
-    model: Literal["gemini"] = "gemini"
+    model: Literal["gemini", "together"] = "together"
 
 def parse_scenes_from_llm(text: str):
     scenes = []
+    # First try to find complete scenes with code blocks
     pattern = re.compile(
-    r"Scene\s*\d+\s*Title:\s*(.*?)\nNarration:\s*(.*?)\n+Manim Code:\s*```(?:python)?\n(.*?)```",
-    re.IGNORECASE | re.DOTALL
+        r"Scene\s*(\d+)\s*Title:\s*(.*?)\nNarration:\s*(.*?)\n+Manim Code:\s*```(?:python)?\n(.*?)```",
+        re.IGNORECASE | re.DOTALL
     )
-    for match in pattern.finditer(text):
-        title = match.group(1).strip()
-        narration = match.group(2).strip()
-        manim_code = match.group(3).strip()
-        scene_id = f"scene_{uuid.uuid4().hex[:8]}"
-        scenes.append({
-            "id": scene_id,
-            "title": title,
-            "narration": narration,
-            "manim_code": manim_code
-        })
+    
+    matches = list(pattern.finditer(text))
+    if matches:
+        for match in matches:
+            scene_num = match.group(1)
+            title = match.group(2).strip()
+            narration = match.group(3).strip()
+            manim_code = match.group(4).strip()
+            scene_id = f"scene_{uuid.uuid4().hex[:8]}"
+            scenes.append({
+                "id": scene_id,
+                "title": title,
+                "narration": narration,
+                "manim_code": manim_code
+            })
+    
+    # If no complete scenes found, try to find at least titles and narrations
+    if not scenes:
+        alt_pattern = re.compile(
+            r"Scene\s*(\d+)\s*Title:\s*(.*?)\nNarration:\s*(.*?)(?=\nScene\s*\d+\s*Title:|$)",
+            re.IGNORECASE | re.DOTALL
+        )
+        matches = list(alt_pattern.finditer(text))
+        if matches:
+            for match in matches:
+                scene_num = match.group(1)
+                title = match.group(2).strip()
+                narration = match.group(3).strip()
+                scene_id = f"scene_{uuid.uuid4().hex[:8]}"
+                scenes.append({
+                    "id": scene_id,
+                    "title": title,
+                    "narration": narration,
+                    "manim_code": "# Manim code not generated properly"
+                })
+    
+    # If still no scenes found, create a single scene with the raw text
     if not scenes:
         scenes.append({
-            "id": f"scene_{uuid.uuid4().hex[:6]}",
+            "id": f"scene_{uuid.uuid4().hex[:8]}",
             "title": "Untitled Scene",
             "narration": text.strip(),
             "manim_code": "# Manim code not generated"
         })
+    
     return scenes
 
 @router.post("/")
