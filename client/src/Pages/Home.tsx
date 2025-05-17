@@ -17,7 +17,9 @@ const Home = () => {
     scenes,
     polling,
     generateScenes,
-    renderVideo
+    renderVideo,
+    model,
+    setModel,
   } = useVideoGeneration();
 
   return (
@@ -25,6 +27,8 @@ const Home = () => {
       <Header />
       
       <PromptInput 
+        model={model}
+        setModel={setModel}
         input={input}
         setInput={setInput}
         onGenerate={generateScenes}
