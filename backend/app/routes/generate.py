@@ -56,7 +56,7 @@ async def generate_scenes(request: GenerateRequest):
             - Valid Python ManimCE code in a single class (subclass of `Scene`)
         2. Only use the following Manim elements:
             - `Text`, `Circle`, `Dot`, `Arrow`
-            - Colors: `RED`, `GREEN`, `BLUE`, `YELLOW`, `WHITE`, `BLACK`, `GRAY`, `LIGHT_BLUE`, `LIGHT_GREEN`, `LIGHT_RED`, `LIGHT_YELLOW`
+            - Colors: `RED`, `GREEN`, `BLUE`, `YELLOW`, `WHITE`, `BLACK`, `GRAY` (no light colors)
             - Transformations and animations like `.shift()`, `.scale()`, `.rotate()`, `.fade_out()`, `.fade_in()`, `Create()`, `Write()`, `MoveToTarget()`, `Transform()`, `Rotate()`, `FadeIn()`, `FadeOut()`
         3. Use only **positional arguments** unless you're absolutely certain the keyword is valid in Manim.
             - Example: ❌ `rotate_about_origin(about_point=...)` ← Invalid

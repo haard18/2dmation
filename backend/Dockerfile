@@ -17,11 +17,14 @@ RUN apt-get update && apt-get install -y \
     g++ \
     make
 
-# Install manim and redis client
-RUN pip install --no-cache-dir manim redis
-
 # Set working directory
 WORKDIR /app
+
+# Copy requirements first to leverage Docker cache
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Set Python path
 ENV PYTHONPATH=/app
