@@ -58,6 +58,28 @@ Your task is to break down the following topic into 3 short, educational animate
    - Use any unverified keyword arguments
 5. Each scene class should be named `Scene1`, `Scene2`, `Scene3` respectively.
 
+## Text Animation Rules:
+1. Always position text elements with proper spacing:
+   - Use `.shift()` to position text elements
+   - Keep at least 0.5 units of vertical space between text elements
+   - Use `UP`, `DOWN`, `LEFT`, `RIGHT` constants for positioning
+   - Example: `text1.shift(UP * 2)`, `text2.shift(DOWN * 1.5)`
+2. Animate text sequentially:
+   - Use `Write()` for text appearance
+   - Add `Wait()` between text animations
+   - Use `FadeOut()` for text removal
+   - Example:
+     ```python
+     self.play(Write(text1))
+     self.wait(0.5)
+     self.play(Write(text2))
+     ```
+3. For multiple text elements:
+   - Create a `VGroup` for related text
+   - Position the group as a whole
+   - Animate elements within the group sequentially
+4. Always use `self.wait()` between major animations to give viewers time to read
+
 ## Output Format:
 You MUST follow this exact format for each scene:
 
