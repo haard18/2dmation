@@ -28,13 +28,12 @@ def write_scene_files(video_dir, scenes):
 def render_scene(video_dir, scene_file):
     cmd = [
         "manim",
-        "-pql",
+        "-ql",  # Just quick quality; no preview
         scene_file
     ]
     result = subprocess.run(cmd, cwd=video_dir, capture_output=True, text=True)
     if result.returncode != 0:
         raise Exception(f"Failed to render {scene_file}: {result.stderr}")
-
 def find_rendered_video(video_dir, scene_name):
     """
     Find the rendered video file inside:
@@ -180,8 +179,7 @@ def worker_loop():
                 r.hset(job_key, "error", str(e))
                 print(f"Job {job_id} failed: {e}")
 
-            # The temporary directory and all its contents will be automatically deleted
-            # when the with block exits, whether the job succeeded or failed
+
 
 if __name__ == "__main__":
     worker_loop()
