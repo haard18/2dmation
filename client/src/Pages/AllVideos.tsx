@@ -1,22 +1,22 @@
-import  { useState } from "react";
-import { useVideos } from "../hooks/useVideos";
-import Container from "../components/Container";
-import { motion } from "framer-motion";
+import React, { useState } from 'react'
+import { useVideos } from '../hooks/useVideos'
+import Container from '../components/Container'
+import { motion } from 'framer-motion'
 
-const VIDEOS_PER_PAGE = 5;
+const VIDEOS_PER_PAGE = 6
 
 const AllVideos = () => {
-  const { videos, loading, error } = useVideos();
-  const [currentPage, setCurrentPage] = useState(1);
+  const { videos, loading, error } = useVideos()
+  const [currentPage, setCurrentPage] = useState(1)
 
-  const totalPages = Math.ceil(videos.length / VIDEOS_PER_PAGE);
+  const totalPages = Math.ceil(videos.length / VIDEOS_PER_PAGE)
   const paginatedVideos = videos.slice(
     (currentPage - 1) * VIDEOS_PER_PAGE,
     currentPage * VIDEOS_PER_PAGE
-  );
+  )
 
-  const handlePrev = () => setCurrentPage((p) => Math.max(p - 1, 1));
-  const handleNext = () => setCurrentPage((p) => Math.min(p + 1, totalPages));
+  const handlePrev = () => setCurrentPage((p) => Math.max(p - 1, 1))
+  const handleNext = () => setCurrentPage((p) => Math.min(p + 1, totalPages))
 
   if (loading) {
     return (
@@ -25,7 +25,7 @@ const AllVideos = () => {
           <div className="animate-spin h-10 w-10 border-4 border-black border-t-transparent"></div>
         </div>
       </Container>
-    );
+    )
   }
 
   if (error) {
@@ -35,7 +35,7 @@ const AllVideos = () => {
           ⚠️ Error: {error}
         </div>
       </Container>
-    );
+    )
   }
 
   return (
@@ -50,14 +50,14 @@ const AllVideos = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10 mt-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mt-8">
         {paginatedVideos.map((videoUrl, index) => (
           <motion.div
             key={videoUrl}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
-            className="border-4 border-black bg-white p-2"
+            className="border-4 border-black bg-white p-2 hover:scale-[1.02] transition-transform duration-200"
           >
             <video
               controls
@@ -74,7 +74,7 @@ const AllVideos = () => {
           <button
             onClick={handlePrev}
             disabled={currentPage === 1}
-            className="px-4 py-2 bg-white border-4 border-black text-black font-bold hover:bg-yellow-300 disabled:opacity-50"
+            className="px-4 py-2 bg-white border-4 border-black text-black font-bold hover:bg-yellow-300 disabled:opacity-50 transition-colors duration-200"
           >
             ⬅ Prev
           </button>
@@ -84,14 +84,14 @@ const AllVideos = () => {
           <button
             onClick={handleNext}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-white border-4 border-black text-black font-bold hover:bg-yellow-300 disabled:opacity-50"
+            className="px-4 py-2 bg-white border-4 border-black text-black font-bold hover:bg-yellow-300 disabled:opacity-50 transition-colors duration-200"
           >
             Next ➡
           </button>
         </div>
       )}
     </Container>
-  );
-};
+  )
+}
 
-export default AllVideos;
+export default AllVideos

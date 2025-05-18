@@ -1,4 +1,3 @@
-
 FROM python:3.10-slim
 
 # Install ffmpeg and other required system packages
@@ -11,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     libcairo2-dev \
     libpango1.0-dev \
     libpangocairo-1.0-0 \
+    fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
 # Create working directory
@@ -30,6 +30,7 @@ WORKDIR /app/workers
 
 # Set Python to run in unbuffered mode to ensure logs are displayed immediately
 ENV PYTHONUNBUFFERED=1
+
 ENV $(cat .env)
 # Run the worker
 CMD ["python", "worker.py"]

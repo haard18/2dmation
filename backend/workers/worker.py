@@ -7,6 +7,7 @@ from pathlib import Path
 from services import get_video_scene_ids, get_scene
 import redis
 from supabase import create_client, Client
+import time
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SERVICE_ROLE")
@@ -98,16 +99,22 @@ def merge_videos(video_dir, scene_count, output_name="final_video.mp4"):
 def worker_loop():
     print("Worker started, waiting for jobs...")
     while True:
-        _, job_id = r.blpop("render_queue")
-        print(f"Picked job: {job_id}")
+        try:
+            # Timeout after 60 seconds instead of blocking forever
+            result = r.blpop("render_queue", timeout=60)
+            
+            if result is None:
+                # No job in the last 60 seconds, loop again (keep connection alive)
+                continue
+                
+            _, job_id = result
+            print(f"Picked job: {job_id}")
+            
+            job_key = f"render_job:{job_id}"
+            job_data = r.hgetall(job_key)
+            video_id = job_data.get("video_id")
 
-        job_key = f"render_job:{job_id}"
-        job_data = r.hgetall(job_key)
-        video_id = job_data.get("video_id")
-
-        # Create a temporary directory for this job
-        with tempfile.TemporaryDirectory() as temp_dir:
-            try:
+            with tempfile.TemporaryDirectory() as temp_dir:
                 temp_path = Path(temp_dir)
                 r.hset(job_key, "status", "in_progress")
 
@@ -127,28 +134,25 @@ def worker_loop():
                 successful_scene_indexes = []
                 failed_scene_indexes = []
 
-                for idx in range(len(scenes)):
+                for idx, scene in enumerate(scenes):
                     scene_file = f"scene{idx+1}.py"
                     try:
                         print(f"Rendering {scene_file} ...")
                         render_scene(video_dir, scene_file)
-                        # Verify the video was actually created
                         video_path = find_rendered_video(video_dir, f"scene{idx+1}")
                         if video_path:
                             successful_scene_indexes.append(idx + 1)
                         else:
-                            print(f"Warning: No video file found for {scene_file} after rendering")
+                            print(f"Warning: No video file found for {scene_file}")
                             failed_scene_indexes.append(idx + 1)
                     except Exception as render_error:
                         print(f"Rendering failed for {scene_file}: {render_error}")
                         failed_scene_indexes.append(idx + 1)
-                        # Continue with next scene
 
                 if not successful_scene_indexes:
                     raise Exception("All scene renders failed. No video to merge.")
 
                 print(f"Merging {len(successful_scene_indexes)} successful scenes...")
-                print(f"Failed scenes: {failed_scene_indexes}")
                 final_video = merge_videos(video_dir, len(scenes), output_name="final_video.mp4")
 
                 with open(final_video, "rb") as f:
@@ -174,10 +178,21 @@ def worker_loop():
                 except Exception as upload_error:
                     raise Exception(f"Supabase upload failed: {str(upload_error)}")
 
-            except Exception as e:
-                r.hset(job_key, "status", "failed")
-                r.hset(job_key, "error", str(e))
-                print(f"Job {job_id} failed: {e}")
+        except redis.exceptions.ConnectionError as ce:
+            print(f"[Redis] Connection dropped: {ce}. Reconnecting in 5s...")
+            time.sleep(5)
+            # Re-initialize Redis connection
+            r = redis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
+            continue  # Continue the loop instead of breaking
+            
+        except Exception as e:
+            print(f"Job failed: {e}")
+            if 'job_key' in locals():
+                r.hset(job_key, mapping={
+                    "status": "failed",
+                    "error": str(e)
+                })
+            continue  # Continue the loop for other exceptions too
 
 
 
