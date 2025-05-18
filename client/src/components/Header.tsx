@@ -4,13 +4,13 @@ import { motion } from "framer-motion";
 const Header = () => {
   return (
     <motion.div
-      className="text-center space-y-4 py-12 px-4 sm:px-6 lg:px-8"
+      className="text-center space-y-6 py-16 px-6 bg-white border-4 border-black"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
       <motion.h1
-        className="text-6xl sm:text-7xl font-extrabold bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 bg-clip-text text-transparent tracking-tight font-sans drop-shadow-md"
+        className="text-6xl sm:text-7xl font-black text-black uppercase tracking-tight border-4 border-black inline-block px-4 py-2"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
@@ -18,7 +18,7 @@ const Header = () => {
         2DMation
       </motion.h1>
       <motion.p
-        className="text-gray-300 text-xl sm:text-2xl font-light max-w-2xl mx-auto leading-relaxed"
+        className="text-lg sm:text-xl font-bold text-black max-w-2xl mx-auto leading-snug bg-yellow-300 border-2 border-black p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}

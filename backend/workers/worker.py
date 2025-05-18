@@ -28,7 +28,7 @@ def write_scene_files(video_dir, scenes):
 def render_scene(video_dir, scene_file):
     cmd = [
         "manim",
-        "-ql",  # Just quick quality; no preview
+        "-qh",  # Just quick quality; no preview
         scene_file
     ]
     result = subprocess.run(cmd, cwd=video_dir, capture_output=True, text=True)

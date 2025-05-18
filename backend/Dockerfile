@@ -1,36 +1,35 @@
-# Use an official Python image
+
 FROM python:3.10-slim
 
-# Install system dependencies
+# Install ffmpeg and other required system packages
 RUN apt-get update && apt-get install -y \
-    pkg-config \
     ffmpeg \
-    libpango-1.0-0 \
+    git \
     build-essential \
-    texlive-latex-base \
-    texlive-fonts-recommended \
-    texlive-latex-extra \
-    texlive-fonts-extra \
-    texlive-xetex \
-    libcairo2 \
+    pkg-config \
+    python3-dev \
     libcairo2-dev \
-    libpango1.0-dev \    
+    libpango1.0-dev \
+    libpangocairo-1.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-
-# Set working directory
+# Create working directory
 WORKDIR /app
 
-# Copy project files
-COPY workers/ /app/
+# Copy requirements first to leverage Docker cache
+COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Set environment variables
-ENV REDIS_URL=rediss://red-d0j1b96uk2gs73arkc90:0ntpupxbrLO5C380MvfXrFICQag2WxVS@oregon-keyvalue.render.com:6379
-ENV SUPABASE_URL=https://rufezaehgzjyvslcwojx.supabase.co
-ENV SERVICE_ROLE=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1ZmV6YWVoZ3pqeXZzbGN3b2p4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzMzMjMyOCwiZXhwIjoyMDYyOTA4MzI4fQ.50PQkdSfZEysxf9SoaqD4hzz2rRML1g1t-U32mcSDOI
+# Copy the workers directory
+COPY workers/ /app/workers/
 
-# Run the script
+# Set the working directory to workers
+WORKDIR /app/workers
+
+# Set Python to run in unbuffered mode to ensure logs are displayed immediately
+ENV PYTHONUNBUFFERED=1
+ENV $(cat .env)
+# Run the worker
 CMD ["python", "worker.py"]

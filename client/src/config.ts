@@ -1,1 +1,4 @@
 export const API_BASE = "https://twodmation.onrender.com"
+
+export const SUPABASE_URL = "https://rufezaehgzjyvslcwojx.supabase.co"
+export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1ZmV6YWVoZ3pqeXZzbGN3b2p4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzMzMjMyOCwiZXhwIjoyMDYyOTA4MzI4fQ.50PQkdSfZEysxf9SoaqD4hzz2rRML1g1t-U32mcSDOI"
