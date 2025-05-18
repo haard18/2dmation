@@ -37,6 +37,22 @@ const PromptInput = ({
           className="w-full p-4 bg-white text-black placeholder-gray-700 font-mono border-4 border-black"
           whileFocus={{ scale: 1.01 }}
         />
+        <div className="mt-2 flex flex-wrap gap-2 text-sm text-gray-700 font-mono">
+          {[
+            "Explain gravity",
+            "What is AI?",
+            "How does photosynthesis work?",
+          ].map((example) => (
+            <button
+              key={example}
+              onClick={() => setInput(example)}
+              className="bg-yellow-200 px-2 py-1 border border-black rounded hover:bg-yellow-300 transition"
+              type="button"
+            >
+              {example}
+            </button>
+          ))}
+        </div>
       </motion.div>
 
       <motion.button

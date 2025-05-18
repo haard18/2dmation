@@ -1,7 +1,9 @@
 // components/Header.jsx
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
+  const navigate = useNavigate();
   return (
     <motion.div
       className="text-center space-y-6 py-16 px-6 bg-white border-4 border-black"
@@ -25,6 +27,12 @@ const Header = () => {
       >
         Transform your ideas into animated stories with clarity and character.
       </motion.p>
+      <motion.button
+        className="bg-blue-400 text-black font-bold font-mono py-4 px-3 border-4 border-black uppercase hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-transform"
+        onClick={() => navigate("/videos")}
+      >
+        Generated Videos here
+      </motion.button>
     </motion.div>
   );
 };
